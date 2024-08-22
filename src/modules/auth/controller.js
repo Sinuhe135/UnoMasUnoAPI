@@ -20,7 +20,6 @@ async function login(req, res)
         }
     
         const auth = await getAuthByUsername(req.body.username);
-
         if(!auth)
         {
             response.error(req,res,'Usuario o contraseña incorrectos',400);
@@ -28,16 +27,21 @@ async function login(req, res)
         }
 
         const resultado = await bcrypt.compare(req.body.password,auth.password);
-        if(resultado)
-        {
-            const {type} = await getTeacher(auth.id);
-            await createJWTCookies(res,auth,type);
-            response.success(req,res,{id:auth.id},200);
-        }
-        else
+        if(!resultado)
         {
             response.error(req,res,'Usuario o contraseña incorrectos',400);
+            return;
         }
+
+        const teacher = await getTeacher(auth.id);
+        if(!teacher)
+        {
+            nse.error(req,res,'El usuario no es un maestro',400);
+            return;
+        }
+
+        await createJWTCookies(res,auth,teacher.type);
+        response.success(req,res,{id:auth.id,type:teacher.type},200);
 
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);

@@ -3,6 +3,25 @@ const {getKey, getRefreshMaxAgeMili,generateAccessToken,generateRefreshToken} = 
 const response = require('./../utils/responses.js');
 const {getSession, updateStartDate} = require('./../databaseUtils/session.js');
 const {getAuth} = require('./../databaseUtils/auth.js');
+const {getTeacher} = require('./../databaseUtils/teacher.js');
+
+const requireAdmin = async (req,res,next) =>{
+    try {
+        const logInSuccess = await checkAccessToken(res,req, 'admin')
+        if (!logInSuccess)
+        {
+            response.error(req,res,"Sesion no iniciada",403);
+            return;
+        }
+
+        return next();
+
+    } catch (error) {
+        console.log(`Hubo un error con ${req.method} ${req.originalUrl} al obtener informacion del access token`);
+        console.log(error);
+        response.error(req,res,'Hubo un error con el servidor',500);
+    }
+};
 
 const getAuthInfo = async (req,res,next) =>{
     try {
@@ -59,7 +78,7 @@ const requireNotLoggedIn = async (req,res,next) =>{
     }
 };
 
-async function checkAccessToken(res,req)
+async function checkAccessToken(res,req, lookingType)
 {
     const accessToken = req.cookies.accessToken;
 
@@ -69,17 +88,23 @@ async function checkAccessToken(res,req)
     const {payload, expired} = verifyJWT(accessToken);
     
     if(expired)
-        return await checkRefreshToken(res,req, true);
+        return await checkRefreshToken(res,req, true, lookingType);
 
     if(!payload)
         return false;
 
+    if(payload.type !== lookingType)
+    {
+        return false;
+    }
+
     res.locals.idAuth = payload.id;
     res.locals.username = payload.username;
+    res.locals.type = payload.type;
     return true;
 }
     
-async function checkRefreshToken(res,req, isRevalidating)
+async function checkRefreshToken(res,req, isRevalidating, lookingType)
 {
     const refreshToken = req.cookies.refreshToken;
 
@@ -103,7 +128,7 @@ async function checkRefreshToken(res,req, isRevalidating)
         return false;
 
     if(isRevalidating)
-        return await updateAccessToken(res, session);
+        return await updateAccessToken(res, session, lookingType);
     else
     {
         res.locals.idSession = session.id;
@@ -129,19 +154,29 @@ function verifyJWT(token)
     }
 }
 
-async function updateAccessToken(res, session)
+async function updateAccessToken(res, session, lookingType)
 {
-    const auth = await getAuth(session.idAuth)
-    if (!auth)
+    const auth = await getAuth(session.idAuth);
+    const {type} = await getTeacher(session.idAuth);
+
+    if (!auth || !type)
         return false;
+
+    auth.type = type;
     
     const accessToken = generateAccessToken(auth);
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
 
     await updateRefreshToken(res, session);
+
+    if(payload.type !== lookingType)
+    {
+        return false;
+    }
     
     res.locals.idAuth = auth.id;
     res.locals.username = auth.username;
+    res.locals.type = auth.type;
     return true;
 }
 
