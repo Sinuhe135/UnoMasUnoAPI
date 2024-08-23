@@ -19,10 +19,25 @@ async function deleteAuth(id)
     return deletedAuth;
 }
 
-async function editPassword(password,id)
+async function editPassword(password,idAuth,idCurrentSession)
 {
-    const [result] = await pool.query('update AUTH set password = ? where id = ?',[password,id]);
-    return await getAuth(id);
+    const conn = await pool.getConnection();
+    try {
+        await conn.beginTransaction();
+    
+        const [result] = await pool.query('update AUTH set password = ? where id = ?',[password,idAuth]);
+        await pool.query('delete from SESSION where idAuth = ? and id != ?',[idAuth,idCurrentSession]); //deletes all user sessions except current one
+    
+        await conn.commit();
+        conn.release();
+
+        return await getAuth(idAuth);
+    } catch (error) {
+        await conn.rollback();
+        conn.release();
+
+        throw (error);
+    }   
 }
 
 module.exports={getAuthByUsername, deleteAuth, getAuth, editPassword};

@@ -1,8 +1,8 @@
 const validateUser = require('./schema.js');
 const response = require('../../utils/responses.js');
-const {getAllUsers,getUser, editUser, unactivateUser, procedure, transaction} = require('../../databaseUtils/user.js');
+const {getAllUsers,getUser, editUser, unactivateUser} = require('../../databaseUtils/user.js');
 const {deleteAllUserSessions} = require('../../databaseUtils/session.js');
-const {deleteAuth, getAuth} = require('../../databaseUtils/auth.js');
+const {deleteAuth} = require('../../databaseUtils/auth.js');
 
 async function getAll(req,res)
 {

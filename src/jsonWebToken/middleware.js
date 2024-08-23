@@ -5,56 +5,46 @@ const {getSession, updateStartDate} = require('./../databaseUtils/session.js');
 const {getAuth} = require('./../databaseUtils/auth.js');
 const {getTeacher} = require('./../databaseUtils/teacher.js');
 
+// Exports //
+
 const requireAdmin = async (req,res,next) =>{
     try {
-        const logInSuccess = await checkAccessToken(res,req, 'admin')
-        if (!logInSuccess)
-        {
-            response.error(req,res,"Sesion no iniciada",403);
-            return;
-        }
+        const lookingTypes = ['admin'];
 
-        return next();
+        const logInSuccess = await checkAccessToken(req,res,lookingTypes);
+        if(logInSuccess)
+            return next();
 
     } catch (error) {
-        console.log(`Hubo un error con ${req.method} ${req.originalUrl} al obtener informacion del access token`);
+        console.log(`Hubo un error con requireAdmin en ${req.method} ${req.originalUrl}`);
         console.log(error);
         response.error(req,res,'Hubo un error con el servidor',500);
     }
 };
 
-const getAuthInfo = async (req,res,next) =>{
+const requireTeacher = async (req,res,next) =>{
     try {
-        const logInSuccess = await checkAccessToken(res,req)
-        if (!logInSuccess)
-        {
-            response.error(req,res,"Sesion no iniciada",403);
-            return;
-        }
+        const lookingTypes = ['admin','general','independiente'];
 
-        return next();
+        const logInSuccess = await checkAccessToken(req,res,lookingTypes);
+        if(logInSuccess)
+            return next();
 
     } catch (error) {
-        console.log(`Hubo un error con ${req.method} ${req.originalUrl} al obtener informacion del access token`);
+        console.log(`Hubo un error con requireTeacher en ${req.method} ${req.originalUrl}`);
         console.log(error);
         response.error(req,res,'Hubo un error con el servidor',500);
     }
 };
 
-
-const getSessionInfo = async (req,res,next) =>{
+const requireSession = async (req,res,next) =>{
     try {
-        const logInSuccess = await checkRefreshToken(res,req, false)
-        if (!logInSuccess)
-            {
-                response.error(req,res,"Sesion no iniciada",403);
-            return;
-        }
-        
-        return next();
+        const checkingSuccess = await checkRefreshTokenInfo(req,res)
+        if(checkingSuccess)
+            return next();
 
     } catch (error) {
-        console.log(`Hubo un error con ${req.method} ${req.originalUrl} al obtener informacion del refresh token`);
+        console.log(`Hubo un error en getSessionInfo con ${req.method} ${req.originalUrl}`);
         console.log(error);
         response.error(req,res,'Hubo un error con el servidor',500);
     }
@@ -62,80 +52,189 @@ const getSessionInfo = async (req,res,next) =>{
 
 const requireNotLoggedIn = async (req,res,next) =>{
     try {
-        const logInSuccess = await checkAccessToken(res,req)
-        if (logInSuccess)
+        const logInSuccess = await checkNotAccessToken(req,res);
+        if(!logInSuccess)
         {
-            response.error(req,res,"Sesion ya iniciada",403);
-            return;
+            return next();
         }
 
-        return next();
-
     } catch (error) {
-        console.log(`Hubo un error con ${req.method} ${req.originalUrl} al confirmar que no hay access token`);
+        console.log(`Hubo un error con requireNotLoggedIn en ${req.method} ${req.originalUrl}`);
         console.log(error);
         response.error(req,res,'Hubo un error con el servidor',500);
     }
 };
 
-async function checkAccessToken(res,req, lookingType)
+// Functionality //
+
+async function checkAccessToken(req,res, lookingTypes)
 {
     const accessToken = req.cookies.accessToken;
-
-    if(!accessToken)
-        return false;
-
-    const {payload, expired} = verifyJWT(accessToken);
     
-    if(expired)
-        return await checkRefreshToken(res,req, true, lookingType);
-
-    if(!payload)
-        return false;
-
-    if(payload.type !== lookingType)
+    if(!accessToken)
     {
+        response.error(req,res,"Sesion no iniciada",401);
         return false;
     }
-
+    
+    let {payload, expired} = verifyJWT(accessToken);
+    
+    //valid token, but expired
+    if(expired)
+    {
+        payload = await checkRefreshToken(req,res);
+        if(!payload)
+        {
+            response.error(req,res,"Sesion expirada",401);
+            return false;
+        }
+    }
+    else if(!payload) //invalid token
+    {
+        response.error(req,res,"Sesion invalida",401);
+        return false;
+    }
+    
+    if(!lookingTypes.includes(payload.type))
+    {
+        response.error(req,res,"No tienes los permisos necesarios",403);
+        return false;
+    }
+    
     res.locals.idAuth = payload.id;
     res.locals.username = payload.username;
     res.locals.type = payload.type;
+
     return true;
 }
     
-async function checkRefreshToken(res,req, isRevalidating, lookingType)
+async function checkRefreshToken(req,res)
 {
     const refreshToken = req.cookies.refreshToken;
 
     if(!refreshToken)
-        return false;
+        return null;
 
     const {payload, expired} = verifyJWT(refreshToken);
 
     if(expired)
-        return false;
+        return null;
     
     if(!payload)
-        return false;
+        return null;
     
     const session = await getSession(payload.id);
     
     if(!session)
-        return false;
+        return null;
 
     if(session.idAuth !== payload.idAuth)
-        return false;
+        return null;
 
-    if(isRevalidating)
-        return await updateAccessToken(res, session, lookingType);
-    else
-    {
-        res.locals.idSession = session.id;
-        return true;
-    }
+    const newPayload = await updateAccessToken(res, session);
+    return newPayload;
 }
                 
+
+async function updateAccessToken(res, session)
+{
+    const auth = await getAuth(session.idAuth);
+    const teacher = await getTeacher(session.idAuth);
+    
+    if (!auth || !teacher)
+        return null;
+    
+    auth.type = teacher.type;
+    
+    const accessToken = generateAccessToken(auth);
+    res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
+    
+    await updateRefreshToken(res, session);
+    
+    return auth;
+}
+
+async function updateRefreshToken(res,session)
+{
+    //Checks if refreshToken is half the way to expiring 
+    if ( getRefreshMaxAgeMili()/2 < Date.now()-session.startDate*1000 )
+    {
+        const updatedSession = await updateStartDate(session.id);
+        const refreshToken = generateRefreshToken(updatedSession);
+        res.cookie('refreshToken',refreshToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
+    }
+}
+
+async function checkNotAccessToken(req,res)
+{
+    const accessToken = req.cookies.accessToken;
+    
+    if(!accessToken)
+    {
+        return false;
+    }
+    
+    let {payload, expired} = verifyJWT(accessToken);
+    
+    //valid token, but expired
+    if(expired)
+    {
+        payload = await checkRefreshToken(req,res, true);
+    }
+    
+    //invalid token
+    if(!payload) 
+    {
+        return false;
+    }
+
+    response.error(req,res,"Sesion ya iniciada",409);
+    return true;
+}
+
+async function checkRefreshTokenInfo(req,res)
+{
+    const refreshToken = req.cookies.refreshToken;
+
+    if(!refreshToken)
+    {
+        response.error(req,res,"Sesion no iniciada",401);
+        return false;
+    }
+
+    const {payload, expired} = verifyJWT(refreshToken);
+
+    if(expired) //token expired
+    {
+        response.error(req,res,"Sesion expirada",401);
+        return false;
+    }
+    
+    if(!payload)//token invalid
+    {
+        response.error(req,res,"Sesion invalida",401);
+        return false;
+    }
+    
+    const session = await getSession(payload.id);
+    
+    if(!session)
+    {
+        response.error(req,res,"Sesion expirada",401);
+        return false;
+    }
+
+    if(session.idAuth !== payload.idAuth)
+    {
+        response.error(req,res,"Sesion expirada",401);
+        return false;
+    }
+
+    res.locals.idSession = session.id;
+    return true;
+}
+    
+    
 function verifyJWT(token)
 {
     try {
@@ -154,41 +253,4 @@ function verifyJWT(token)
     }
 }
 
-async function updateAccessToken(res, session, lookingType)
-{
-    const auth = await getAuth(session.idAuth);
-    const {type} = await getTeacher(session.idAuth);
-
-    if (!auth || !type)
-        return false;
-
-    auth.type = type;
-    
-    const accessToken = generateAccessToken(auth);
-    res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
-
-    await updateRefreshToken(res, session);
-
-    if(payload.type !== lookingType)
-    {
-        return false;
-    }
-    
-    res.locals.idAuth = auth.id;
-    res.locals.username = auth.username;
-    res.locals.type = auth.type;
-    return true;
-}
-
-async function updateRefreshToken(res,session)
-{
-    //Checks if refreshToken is half the way to expiring 
-    if ( getRefreshMaxAgeMili()/2 < Date.now()-session.startDate*1000 )
-    {
-        const updatedSession = await updateStartDate(session.id);
-        const refreshToken = generateRefreshToken(updatedSession);
-        res.cookie('refreshToken',refreshToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
-    }
-}
-
-module.exports = {getAuthInfo, getSessionInfo, requireNotLoggedIn};
+module.exports = {requireAdmin, requireTeacher, requireNotLoggedIn, requireSession};

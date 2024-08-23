@@ -1,6 +1,7 @@
 const validateSignUp = require('./schemas/signup.js');
 const validateLogIn = require('./schemas/login.js');
 const validateChangePassword = require('./schemas/changePassword.js');
+const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
 const bcrypt = require('bcrypt');
 const {generateAccessToken,generateRefreshToken, getRefreshMaxAgeMili} = require('../../jsonWebToken/utils.js')
@@ -95,17 +96,33 @@ async function signup(req,res)
 async function changePassword(req, res)
 {
     try {
-        const {error} = validateChangePassword(req.body);
+        let error = validateParamId(req.params).error;
         if(error)
         {
             response.error(req,res,error.details[0].message,400);
             return;
         }
 
-        const passwordHash = await hashPassword(req.body.password);
-        auth = await editPassword(passwordHash, req.body.id);
+        error = validateChangePassword(req.body).error;
+        if(error)
+        {
+            response.error(req,res,error.details[0].message,400);
+            return;
+        }
 
-        response.success(req,res,auth,200);
+        const authAdmin = await getAuthByUsername(res.locals.username);
+
+        const resultado = await bcrypt.compare(req.body.password,authAdmin.password);
+        if(!resultado)
+        {
+            response.error(req,res,'Contraseña del administrador incorrecta',400);
+            return;
+        }
+
+        const passwordHash = await hashPassword(req.body.newPassword);
+        const newAuth = await editPassword(passwordHash, req.params.id, res.locals.idSession);
+
+        response.success(req,res,newAuth,201);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
