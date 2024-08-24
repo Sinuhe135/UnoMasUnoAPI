@@ -13,21 +13,22 @@ const { getTeacher}= require('../../databaseUtils/teacher.js');
 async function login(req, res)
 {
     try {
-        const {error} = validateLogIn(req.body);
-        if(error)
+        const validation = validateLogIn(req.body);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const body = validation.value;
     
-        const auth = await getAuthByUsername(req.body.username);
+        const auth = await getAuthByUsername(body.username);
         if(!auth)
         {
             response.error(req,res,'Usuario o contraseña incorrectos',400);
             return;
         }
 
-        const resultado = await bcrypt.compare(req.body.password,auth.password);
+        const resultado = await bcrypt.compare(body.password,auth.password);
         if(!resultado)
         {
             response.error(req,res,'Usuario o contraseña incorrectos',400);
@@ -68,22 +69,23 @@ async function logout(req, res)
 async function signup(req,res)
 {
     try {
-        const {error} = validateSignUp(req.body);
-        if(error)
+        const validation = validateSignUp(req.body);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const body = validation.value;
     
-        const auth = await getAuthByUsername(req.body.username);
+        const auth = await getAuthByUsername(body.username);
         if(auth)
         {
             response.error(req,res,'El nombre de usuario ya existe',400);
             return;
         }
     
-        const passwordHash = await hashPassword(req.body.password);
-        const user = await createUser(req.body.name,req.body.patLastName,req.body.matLastName,req.body.phone,req.body.username,passwordHash,req.body.type,req.body.commision);
+        const passwordHash = await hashPassword(body.password);
+        const user = await createUser(body.name,body.patLastName,body.matLastName,body.phone,body.username,passwordHash,body.type,body.commision);
     
         response.success(req,res,user,201);
     } catch (error) {
@@ -96,31 +98,33 @@ async function signup(req,res)
 async function changePassword(req, res)
 {
     try {
-        let error = validateParamId(req.params).error;
-        if(error)
+        let validation = validateParamId(req.params);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const params = validation.value;
 
-        error = validateChangePassword(req.body).error;
-        if(error)
+        validation = validateChangePassword(req.body);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const body = validation.value;
 
         const authAdmin = await getAuthByUsername(res.locals.username);
 
-        const resultado = await bcrypt.compare(req.body.password,authAdmin.password);
+        const resultado = await bcrypt.compare(body.password,authAdmin.password);
         if(!resultado)
         {
             response.error(req,res,'Contraseña del administrador incorrecta',400);
             return;
         }
 
-        const passwordHash = await hashPassword(req.body.newPassword);
-        const newAuth = await editPassword(passwordHash, req.params.id, res.locals.idSession);
+        const passwordHash = await hashPassword(body.newPassword);
+        const newAuth = await editPassword(passwordHash, params.id, res.locals.idSession);
 
         response.success(req,res,newAuth,201);
     } catch (error) {

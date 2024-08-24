@@ -31,14 +31,15 @@ async function getCurrent(req,res)
 async function getSearchId(req,res)
 {
     try {
-        const {error} = validateParamId(req.params);
-        if(error)
+        const validation = validateParamId(req.params);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const params = validation.value;
 
-        const user = await getUser(req.params.id);
+        const user = await getUser(params.id);
         if(!user)
         {
             response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
@@ -57,28 +58,30 @@ async function putId(req,res)
 {
     try 
     {
-        let error = validateParamId(req.params).error;
-        if(error)
+        let validation = validateParamId(req.params);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const params = validation.value;
 
-        error = validateUser(req.body).error;
-        if(error)
+        validation = validateUser(req.body);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const body = validation.value;
 
-        let user = await getUser(req.params.id);
+        let user = await getUser(params.id);
         if(!user)
         {
             response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
             return;
         }
         
-        user = await editUser(req.body.name,req.body.patLastName,req.body.matLastName,req.body.phone,req.body.commision,req.params.id);
+        user = await editUser(body.name,body.patLastName,body.matLastName,body.phone,body.commision,params.id);
         response.success(req,res,user,200);
     } 
     catch (error) {
@@ -91,21 +94,34 @@ async function putId(req,res)
 async function deleteId(req,res)
 {
     try {
-        const {error} = validateParamId(req.params);
-        if(error)
+        let validation = validateParamId(req.params);
+        if(validation.error)
         {
-            response.error(req,res,error.details[0].message,400);
+            response.error(req,res,validation.error.details[0].message,400);
             return;
         }
+        const params = validation.value;
 
-        let user = await getUser(req.params.id);
+        let user = await getUser(params.id);
         if(!user)
         {
             response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
             return;
         }
 
-        user = await deleteUser(req.params.id);
+        user = await deleteUser(params.id);
+
+        if(params.id === res.locals.idAuth)
+        {
+            res.cookie('accessToken','',{maxAge:1});
+            res.cookie('refreshToken','',{maxAge:1});
+
+            user.selfDeleted = true;
+        }
+        else
+        {
+            user.selfDeleted = false;
+        }
         
         response.success(req,res,user,200);
     } catch (error) {

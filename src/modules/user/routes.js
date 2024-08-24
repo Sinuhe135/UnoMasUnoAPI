@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('./controller.js');
-const {requireAdmin, requireTeacher} = require('../../jsonWebToken/middleware.js');
+const {requireAdmin, requireTeacher, requireSession} = require('../../jsonWebToken/middleware.js');
 
 router.get('/all',requireAdmin,async (req,res) =>{
     await controller.getAll(req,res);
@@ -19,7 +19,7 @@ router.put('/:id',requireAdmin, async (req,res)=>{
     await controller.putId(req,res);
 });
 
-router.delete('/:id',requireAdmin,async (req,res)=>{
+router.delete('/:id',requireAdmin,requireSession,async (req,res)=>{
     await controller.deleteId(req,res);
 });
 
