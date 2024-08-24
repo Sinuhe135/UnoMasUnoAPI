@@ -12,13 +12,6 @@ async function getAuthByUsername(username)
     return rows[0]; 
 }
 
-async function deleteAuth(id)
-{
-    const deletedAuth = await getAuth(id);
-    const [result] = await pool.query('delete from AUTH where id = ?',[id]);
-    return deletedAuth;
-}
-
 async function editPassword(password,idAuth,idCurrentSession)
 {
     const conn = await pool.getConnection();
@@ -40,4 +33,4 @@ async function editPassword(password,idAuth,idCurrentSession)
     }   
 }
 
-module.exports={getAuthByUsername, deleteAuth, getAuth, editPassword};
+module.exports={getAuthByUsername, getAuth, editPassword};

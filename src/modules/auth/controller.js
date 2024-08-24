@@ -75,7 +75,7 @@ async function signup(req,res)
             return;
         }
     
-        let auth = await getAuthByUsername(req.body.username);
+        const auth = await getAuthByUsername(req.body.username);
         if(auth)
         {
             response.error(req,res,'El nombre de usuario ya existe',400);

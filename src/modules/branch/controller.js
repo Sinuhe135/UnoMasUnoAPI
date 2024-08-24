@@ -1,26 +1,13 @@
-const validateUser = require('./schemas/user.js');
+const validateBranch = require('./schemas/branch.js');
 const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
-const {getAllUsers,getUser, editUser, deleteUser} = require('../../databaseUtils/user.js');
+const {getAllBranches,getBranch, editBranch, deleteBranch, createBranch} = require('../../databaseUtils/branch.js');
 
 async function getAll(req,res)
 {
     try {
-        const users = await getAllUsers();
-        response.success(req,res,users,200);
-    } catch (error) {
-        console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
-        console.log(error);
-        response.error(req,res,'Hubo un error con el servidor',500);
-    }
-}
-
-async function getCurrent(req,res)
-{
-    try {
-        const user = await getUser(res.locals.idAuth);
-    
-        response.success(req,res,user,200);
+        const branches = await getAllBranches();
+        response.success(req,res,branches,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -38,14 +25,34 @@ async function getSearchId(req,res)
             return;
         }
 
-        const user = await getUser(req.params.id);
-        if(!user)
+        const branch = await getBranch(req.params.id);
+        if(!branch)
         {
-            response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
+            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
             return;
         }
     
-        response.success(req,res,user,200);
+        response.success(req,res,branch,200);
+    } catch (error) {
+        console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
+        console.log(error);
+        response.error(req,res,'Hubo un error con el servidor',500);
+    }
+}
+
+async function postRoot(req,res)
+{
+    try {
+        const {error} = validateBranch(req.body);
+        if(error)
+        {
+            response.error(req,res,error.details[0].message,400);
+            return;
+        }
+    
+        const branch = await createBranch(req.body.name,req.body.country,req.body.state,req.body.city,req.body.postalCode,req.body.address);
+    
+        response.success(req,res,branch,201);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -64,22 +71,22 @@ async function putId(req,res)
             return;
         }
 
-        error = validateUser(req.body).error;
+        error = validateBranch(req.body).error;
         if(error)
         {
             response.error(req,res,error.details[0].message,400);
             return;
         }
 
-        let user = await getUser(req.params.id);
-        if(!user)
+        let branch = await getBranch(req.params.id);
+        if(!branch)
         {
-            response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
+            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
             return;
         }
         
-        user = await editUser(req.body.name,req.body.patLastName,req.body.matLastName,req.body.phone,req.body.commision,req.params.id);
-        response.success(req,res,user,200);
+        branch = await editBranch(req.body.name,req.body.country,req.body.state,req.body.city,req.body.postalCode,req.body.address, req.params.id);
+        response.success(req,res,branch,200);
     } 
     catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
@@ -98,16 +105,16 @@ async function deleteId(req,res)
             return;
         }
 
-        let user = await getUser(req.params.id);
-        if(!user)
+        let branch = await getBranch(req.params.id);
+        if(!branch)
         {
-            response.error(req,res,'No se encuentra un usuario con el ID proporcionado',404);
+            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
             return;
         }
 
-        user = await deleteUser(req.params.id);
+        branch = await deleteBranch(req.params.id);
         
-        response.success(req,res,user,200);
+        response.success(req,res,branch,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -116,4 +123,4 @@ async function deleteId(req,res)
 }
 
 
-module.exports={getAll, getCurrent, getSearchId, putId, deleteId};
+module.exports={getAll, getSearchId,postRoot, putId, deleteId};
