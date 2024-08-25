@@ -5,10 +5,10 @@ const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
 const bcrypt = require('bcrypt');
 const {generateAccessToken,generateRefreshToken, getRefreshMaxAgeMili} = require('../../jsonWebToken/utils.js')
-const {getAuthByUsername, editPassword} = require('../../databaseUtils/auth.js');
-const {createSession, deleteSession} = require('../../databaseUtils/session.js');
-const { createUser}= require('../../databaseUtils/user.js');
-const { getTeacher}= require('../../databaseUtils/teacher.js');
+const {getAuthByUsername, editPassword} = require('../../databaseUtils/userUtils/auth.js');
+const {createSession, deleteSession} = require('../../databaseUtils/userUtils/session.js');
+const { createUser}= require('../../databaseUtils/userUtils/user.js');
+const { getTeacher}= require('../../databaseUtils/userUtils/teacher.js');
 
 async function login(req, res)
 {

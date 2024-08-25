@@ -1,13 +1,25 @@
-const validateBranch = require('./schemas/branch.js');
+const validateStudent = require('./schemas/student.js');
 const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
-const {getAllBranches,getBranch, editBranch, deleteBranch, createBranch} = require('../../databaseUtils/branch.js');
+const {getAllGeneralStudents,getAllIndieStudents,checkTeacher,getStudentIdTeacher, editStudent, deleteStudent, createStudent} = require('../../databaseUtils/student.js');
+const {getBranch} = require('../../databaseUtils/branch.js');
+const checkStudentOwnership = require('../../utils/studentOwnership.js');
 
 async function getAll(req,res)
 {
     try {
-        const branches = await getAllBranches();
-        response.success(req,res,branches,200);
+        let students;
+        
+        if(res.locals.type === 'admin' || res.locals.type === 'general')
+        {
+            students = await getAllGeneralStudents();
+        }
+        else if(res.locals.type === 'independiente')
+        {
+            students = await getAllIndieStudents(res.locals.idAuth);
+        }
+
+        response.success(req,res,students,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -26,14 +38,18 @@ async function getSearchId(req,res)
         }
         const params = validation.value;
 
-        const branch = await getBranch(params.id);
-        if(!branch)
+        let student = await getStudentIdTeacher(params.id);
+
+        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        if(studentOwnership.error)
         {
-            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
+            response.error(req,res,studentOwnership.error,studentOwnership.code);
             return;
         }
-    
-        response.success(req,res,branch,200);
+        
+        delete student.idTeacher;
+        
+        response.success(req,res,student,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -44,17 +60,35 @@ async function getSearchId(req,res)
 async function postRoot(req,res)
 {
     try {
-        const validation = validateBranch(req.body);
+        const validation = validateStudent(req.body);
         if(validation.error)
         {
             response.error(req,res,validation.error.details[0].message,400);
             return;
         }
         const body = validation.value;
+
+        const branch = await getBranch(body.idBranch);
+        if(!branch)
+        {
+            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
+            return;
+        }
+        
+        let insertIdTeacher;
+        if(res.locals.type === 'admin' || res.locals.type === 'general')
+        {
+            insertIdTeacher = null;
+        }
+        else if(res.locals.type === 'independiente')
+        {
+            insertIdTeacher = res.locals.idAuth;
+        }
+
+        const student = await createStudent(body.name,body.patLastName,body.matLastName,body.momFullName,
+            body.dadFullName,body.country,body.state,body.city,body.postalCode,body.address,body.emergencyPhone,body.visitReason,body.prevDiag,body.alergies,body.comments,insertIdTeacher,body.idBranch);
     
-        const branch = await createBranch(body.name,body.country,body.state,body.city,body.postalCode,body.address);
-    
-        response.success(req,res,branch,201);
+        response.success(req,res,student,201);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -74,7 +108,7 @@ async function putId(req,res)
         }
         const params = validation.value;
 
-        validation = validateBranch(req.body);
+        validation = validateStudent(req.body);
         if(validation.error)
         {
             response.error(req,res,validation.error.details[0].message,400);
@@ -82,15 +116,27 @@ async function putId(req,res)
         }
         const body = validation.value;
 
-        let branch = await getBranch(params.id);
+        let [student,branch] = await Promise.all([checkTeacher(params.id),getBranch(body.idBranch)]);
+
+        //let student = await checkTeacher(params.id);
+        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        if(studentOwnership.error)
+        {
+            response.error(req,res,studentOwnership.error,studentOwnership.code);
+            return;
+        }
+
+        //const branch = await getBranch(body.idBranch);
         if(!branch)
         {
             response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
             return;
         }
+
+        student = await editStudent(body.name,body.patLastName,body.matLastName,body.momFullName,
+            body.dadFullName,body.country,body.state,body.city,body.postalCode,body.address,body.emergencyPhone,body.visitReason,body.prevDiag,body.alergies,body.comments,body.idBranch, params.id);
         
-        branch = await editBranch(body.name,body.country,body.state,body.city,body.postalCode,body.address, params.id);
-        response.success(req,res,branch,200);
+        response.success(req,res,student,200);
     } 
     catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
@@ -110,16 +156,18 @@ async function deleteId(req,res)
         }
         const params = validation.value;
 
-        let branch = await getBranch(params.id);
-        if(!branch)
+        
+        let student = await checkTeacher(params.id);
+        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        if(studentOwnership.error)
         {
-            response.error(req,res,'No se encuentra una sucursal con el ID proporcionado',404);
+            response.error(req,res,studentOwnership.error,studentOwnership.code);
             return;
         }
 
-        branch = await deleteBranch(params.id);
+        student = await deleteStudent(params.id);
         
-        response.success(req,res,branch,200);
+        response.success(req,res,student,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);

@@ -18,6 +18,7 @@ module.exports = (student) =>
         prevDiag: Joi.string().min(3).max(255).trim(),
         alergies: Joi.string().min(3).max(255).trim(),
         comments: Joi.string().min(3).max(255).trim(),
+        idBranch: Joi.number().integer().min(1).required()
     });
 
     return schema.validate(student);

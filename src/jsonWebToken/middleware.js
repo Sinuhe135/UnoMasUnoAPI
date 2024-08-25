@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const {getKey, getRefreshMaxAgeMili,generateAccessToken,generateRefreshToken} = require('./utils.js');
 const response = require('./../utils/responses.js');
-const {getSession, updateStartDate} = require('./../databaseUtils/session.js');
-const {getAuth} = require('./../databaseUtils/auth.js');
-const {getTeacher} = require('./../databaseUtils/teacher.js');
+const {getSession, updateStartDate} = require('./../databaseUtils/userUtils/session.js');
+const {getAuth} = require('./../databaseUtils/userUtils/auth.js');
+const {getTeacher} = require('./../databaseUtils/userUtils/teacher.js');
 
 // Exports //
 
@@ -17,6 +17,21 @@ const requireAdmin = async (req,res,next) =>{
 
     } catch (error) {
         console.log(`Hubo un error con requireAdmin en ${req.method} ${req.originalUrl}`);
+        console.log(error);
+        response.error(req,res,'Hubo un error con el servidor',500);
+    }
+};
+
+const requireAdminIndie = async (req,res,next) =>{
+    try {
+        const lookingTypes = ['admin','independiente'];
+
+        const logInSuccess = await checkAccessToken(req,res,lookingTypes);
+        if(logInSuccess)
+            return next();
+
+    } catch (error) {
+        console.log(`Hubo un error con requireAdminIndie en ${req.method} ${req.originalUrl}`);
         console.log(error);
         response.error(req,res,'Hubo un error con el servidor',500);
     }
@@ -253,4 +268,4 @@ function verifyJWT(token)
     }
 }
 
-module.exports = {requireAdmin, requireTeacher, requireNotLoggedIn, requireSession};
+module.exports = {requireAdmin,requireAdminIndie, requireTeacher, requireNotLoggedIn, requireSession};

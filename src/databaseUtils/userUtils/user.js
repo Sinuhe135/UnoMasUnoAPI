@@ -1,4 +1,4 @@
-const pool = require('./databaseCon.js');
+const pool = require('../databaseCon.js');
 
 async function getAllUsers()
 {

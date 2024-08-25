@@ -1,7 +1,7 @@
 const validateUser = require('./schemas/user.js');
 const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
-const {getAllUsers,getUser, editUser, deleteUser} = require('../../databaseUtils/user.js');
+const {getAllUsers,getUser, editUser, deleteUser} = require('../../databaseUtils/userUtils/user.js');
 
 async function getAll(req,res)
 {
