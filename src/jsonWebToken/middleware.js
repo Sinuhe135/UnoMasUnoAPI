@@ -119,6 +119,7 @@ async function checkAccessToken(req,res, lookingTypes)
     res.locals.idAuth = payload.id;
     res.locals.username = payload.username;
     res.locals.type = payload.type;
+    res.locals.commission = payload.commission;
 
     return true;
 }
@@ -153,20 +154,24 @@ async function checkRefreshToken(req,res)
 
 async function updateAccessToken(res, session)
 {
-    const auth = await getAuth(session.idAuth);
-    const teacher = await getTeacher(session.idAuth);
+    const [auth,teacher] = await Promise.all([getAuth(session.idAuth),getTeacher(session.idAuth)]);
     
     if (!auth || !teacher)
         return null;
     
-    auth.type = teacher.type;
+    const AccessObject = {
+        id:auth.id,
+        username:auth.username,
+        type:teacher.type,
+        commission:teacher.commission
+    };
     
-    const accessToken = generateAccessToken(auth);
+    const accessToken = generateAccessToken(AccessObject);
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
     
     await updateRefreshToken(res, session);
     
-    return auth;
+    return AccessObject;
 }
 
 async function updateRefreshToken(res,session)

@@ -5,7 +5,7 @@ async function getAllGeneralStudents()
     const dataSelection = 'STUDENT.id,STUDENT.name,STUDENT.patLastName,STUDENT.matLastName,STUDENT.momFullName,STUDENT.dadFullName,STUDENT.country,STUDENT.state';
     const dataSelection2 = ',STUDENT.city,STUDENT.postalCode,STUDENT.address,STUDENT.emergencyPhone,STUDENT.visitReason,STUDENT.prevDiag,STUDENT.alergies,STUDENT.comments, BRANCH.name as branchName';
 
-    const [rows] = await pool.query('select ' + dataSelection + dataSelection2 + ' from STUDENT  inner join BRANCH on STUDENT.idBranch = BRANCH.id where STUDENT.active = 1 and STUDENT.idTeacher is null');
+    const [rows] = await pool.query('select ' + dataSelection + dataSelection2 + ' from STUDENT  inner join BRANCH on STUDENT.idBranch = BRANCH.id where STUDENT.active = 1 and STUDENT.idTeacher is null order by STUDENT.id desc');
     return rows;
 }
 
@@ -14,11 +14,11 @@ async function getAllIndieStudents(idTeacher)
     const dataSelection = 'STUDENT.id,STUDENT.name,STUDENT.patLastName,STUDENT.matLastName,STUDENT.momFullName,STUDENT.dadFullName,STUDENT.country,STUDENT.state';
     const dataSelection2 = ',STUDENT.city,STUDENT.postalCode,STUDENT.address,STUDENT.emergencyPhone,STUDENT.visitReason,STUDENT.prevDiag,STUDENT.alergies,STUDENT.comments, BRANCH.name as branchName';
 
-    const [rows] = await pool.query('select ' + dataSelection + dataSelection2 + ' from STUDENT  inner join BRANCH on STUDENT.idBranch = BRANCH.id where STUDENT.active = 1 and STUDENT.idTeacher = ?',[idTeacher]);
+    const [rows] = await pool.query('select ' + dataSelection + dataSelection2 + ' from STUDENT  inner join BRANCH on STUDENT.idBranch = BRANCH.id where STUDENT.active = 1 and STUDENT.idTeacher = ? order by STUDENT.id desc',[idTeacher]);
     return rows;
 }
 
-async function checkTeacher(id)
+async function checkTeacherStudent(id)
 {
     const dataSelection = 'id,idTeacher';
 
@@ -69,4 +69,4 @@ async function createStudent(name,patLastName,matLastName,momFullName,dadFullNam
     return await getStudent(result.insertId);
 }
 
-module.exports={getAllGeneralStudents,getAllIndieStudents,checkTeacher,getStudent,getStudentIdTeacher,editStudent,createStudent, deleteStudent};
+module.exports={getAllGeneralStudents,getAllIndieStudents,checkTeacherStudent,getStudent,getStudentIdTeacher,editStudent,createStudent, deleteStudent};

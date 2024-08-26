@@ -1,9 +1,9 @@
 const validateStudent = require('./schemas/student.js');
 const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
-const {getAllGeneralStudents,getAllIndieStudents,checkTeacher,getStudentIdTeacher, editStudent, deleteStudent, createStudent} = require('../../databaseUtils/student.js');
+const {getAllGeneralStudents,getAllIndieStudents,checkTeacherStudent,getStudentIdTeacher, editStudent, deleteStudent, createStudent} = require('../../databaseUtils/student.js');
 const {getBranch} = require('../../databaseUtils/branch.js');
-const checkStudentOwnership = require('../../utils/studentOwnership.js');
+const checkAccess = require('../../utils//checkAccess.js');
 
 async function getAll(req,res)
 {
@@ -40,7 +40,7 @@ async function getSearchId(req,res)
 
         let student = await getStudentIdTeacher(params.id);
 
-        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        const studentOwnership = checkAccess.student(student,res.locals.idAuth,res.locals.type);
         if(studentOwnership.error)
         {
             response.error(req,res,studentOwnership.error,studentOwnership.code);
@@ -116,10 +116,10 @@ async function putId(req,res)
         }
         const body = validation.value;
 
-        let [student,branch] = await Promise.all([checkTeacher(params.id),getBranch(body.idBranch)]);
+        let [student,branch] = await Promise.all([checkTeacherStudent(params.id),getBranch(body.idBranch)]);
 
-        //let student = await checkTeacher(params.id);
-        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        //let student = await checkTeacherStudent(params.id);
+        const studentOwnership = checkAccess.student(student,res.locals.idAuth,res.locals.type);
         if(studentOwnership.error)
         {
             response.error(req,res,studentOwnership.error,studentOwnership.code);
@@ -157,8 +157,8 @@ async function deleteId(req,res)
         const params = validation.value;
 
         
-        let student = await checkTeacher(params.id);
-        const studentOwnership = checkStudentOwnership(student,res.locals.idAuth,res.locals.type);
+        let student = await checkTeacherStudent(params.id);
+        const studentOwnership = checkAccess.student(student,res.locals.idAuth,res.locals.type);
         if(studentOwnership.error)
         {
             response.error(req,res,studentOwnership.error,studentOwnership.code);

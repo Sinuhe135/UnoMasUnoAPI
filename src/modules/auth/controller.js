@@ -42,7 +42,7 @@ async function login(req, res)
             return;
         }
 
-        await createJWTCookies(res,auth,teacher.type);
+        await createJWTCookies(res,auth,teacher);
         response.success(req,res,{id:auth.id,type:teacher.type},200);
 
     } catch (error) {
@@ -85,7 +85,7 @@ async function signup(req,res)
         }
     
         const passwordHash = await hashPassword(body.password);
-        const user = await createUser(body.name,body.patLastName,body.matLastName,body.phone,body.username,passwordHash,body.type,body.commision);
+        const user = await createUser(body.name,body.patLastName,body.matLastName,body.phone,body.username,passwordHash,body.type,body.commission);
     
         response.success(req,res,user,201);
     } catch (error) {
@@ -139,12 +139,17 @@ async function hashPassword(password) {
     return await bcrypt.hash(password.toString(),salt);
 }
 
-async function createJWTCookies(res, auth,type)
+async function createJWTCookies(res, auth,teacher)
 {
-    const authObject = {id:auth.id,username:auth.username,type:type};
+    const AccessObject = {
+        id:auth.id,
+        username:auth.username,
+        type:teacher.type,
+        commission:teacher.commission
+    };
     const session = await createSession(auth.id);
 
-    const accessToken = generateAccessToken(authObject);
+    const accessToken = generateAccessToken(AccessObject);
     const refreshToken = generateRefreshToken(session);
 
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});

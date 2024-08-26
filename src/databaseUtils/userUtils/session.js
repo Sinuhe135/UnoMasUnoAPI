@@ -1,11 +1,5 @@
 const pool = require('../databaseCon.js');
 
-async function getAllSessions()
-{
-    const [rows] = await pool.query('select * from SESSION');
-    return rows;
-}
-
 async function getSession(id)
 {
     const [rows] = await pool.query('select id, idAuth, UNIX_TIMESTAMP(startDate) as startDate from SESSION where id = ?',[id]);

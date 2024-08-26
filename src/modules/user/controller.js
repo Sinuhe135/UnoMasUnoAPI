@@ -81,7 +81,7 @@ async function putId(req,res)
             return;
         }
         
-        user = await editUser(body.name,body.patLastName,body.matLastName,body.phone,body.commision,params.id);
+        user = await editUser(body.name,body.patLastName,body.matLastName,body.phone,body.commission,params.id);
         response.success(req,res,user,200);
     } 
     catch (error) {

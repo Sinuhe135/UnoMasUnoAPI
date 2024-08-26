@@ -6,4 +6,10 @@ async function getTeacher(id)
     return rows[0];
 }
 
-module.exports={getTeacher};
+async function getcommission(id)
+{
+    const [rows] = await pool.query('select commission from TEACHER where id = ?',[id]);
+    return rows[0];
+}
+
+module.exports={getTeacher, getcommission};
