@@ -10,7 +10,7 @@ module.exports = (auth) =>
         matLastName: Joi.string().min(3).max(30).trim(),
         phone: Joi.string().min(3).max(15).trim().required(),
         type: Joi.string().valid('admin','general','independiente').required(),
-        commision: Joi.number().min(0).max(99.99).precision(2)
+        commission: Joi.number().min(0).max(99.99).precision(2)
     });
 
     return schema.validate(auth);

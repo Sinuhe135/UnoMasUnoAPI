@@ -3,8 +3,8 @@ const pool = require('./databaseCon.js');
 async function getAllPaymentsAdmin()
 {
     const dataSelection = "PAYMENT.id,DATE_FORMAT(PAYMENT.date, '%Y-%m-%d') as date,PAYMENT.concept,PAYMENT.amount,PAYMENT.commissionAmount,PAYMENT.method";
-    const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,' ',STUDENT.matLastname) as student";
-    const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,' ',USER.matLastname) as teacher";
+    const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,COALESCE(CONCAT(' ',STUDENT.matLastname), '')) as student";
+    const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,COALESCE(CONCAT(' ',USER.matLastname), '')) as teacher";
 
     const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id order by PAYMENT.id desc');
     return rows;
@@ -13,8 +13,8 @@ async function getAllPaymentsAdmin()
 async function getAllPayments(id)
 {
     const dataSelection = "PAYMENT.id,DATE_FORMAT(PAYMENT.date, '%Y-%m-%d')as date,PAYMENT.concept,PAYMENT.amount,PAYMENT.commissionAmount,PAYMENT.method";
-    const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,' ',STUDENT.matLastname) as student";
-    const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,' ',USER.matLastname) as teacher";
+    const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,COALESCE(CONCAT(' ',STUDENT.matLastname), '')) as student";
+    const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,COALESCE(CONCAT(' ',USER.matLastname), '')) as teacher";
 
     const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id where PAYMENT.idTeacher = ? order by PAYMENT.id desc',[id]);
     return rows;
