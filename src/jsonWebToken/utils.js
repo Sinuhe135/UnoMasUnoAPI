@@ -4,6 +4,7 @@ const key = process.env.JWT_KEY;
 
 const accessMaxAge = 5*(60);
 const refreshMaxAge = 365*(60*60*24);
+//const refreshMaxAge = 10*(60);
 
 function getAccessMaxAgeMili()
 {

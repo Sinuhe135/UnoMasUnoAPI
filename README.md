@@ -5,6 +5,11 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 
 ### Módulo autentificación
 
+#### GET
+- https://velazduran.com:3000/api/auth/type Obtener tipo de usuario y renovar typeToken cookie
+
+  Requiere estar logueado
+
 #### POST
 - https://velazduran.com:3000/api/auth/signup Registrar usuario.
 

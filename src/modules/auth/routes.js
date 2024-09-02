@@ -15,6 +15,10 @@ router.post('/signup',requireAdmin, async (req,res)=>{
     await controller.signup(req,res);
 });
 
+router.get('/type',requireTeacher, async (req,res)=>{
+    await controller.getType(req,res);
+});
+
 router.put('/changePassword/:id',requireAdmin,requireSession, async (req,res)=>{
     await controller.changePassword(req,res);
 });

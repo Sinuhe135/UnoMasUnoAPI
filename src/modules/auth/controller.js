@@ -58,7 +58,24 @@ async function logout(req, res)
         const session = await deleteSession(res.locals.idSession);
         res.cookie('accessToken','',{maxAge:1});
         res.cookie('refreshToken','',{maxAge:1});
+        res.cookie('typeToken','',{maxAge:1});
         response.success(req,res,{id:session.idAuth},200);
+    } catch (error) {
+        console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
+        console.log(error);
+        response.error(req,res,'Hubo un error con el servidor',500);
+    }
+}
+
+async function getType(req, res)
+{
+    try {
+        const type = res.locals.type;
+
+        const typeToken = btoa(type);
+        res.cookie('typeToken',typeToken,{httpOnly:false,maxAge:getRefreshMaxAgeMili()});
+
+        response.success(req,res,{type:type},200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);
@@ -151,9 +168,11 @@ async function createJWTCookies(res, auth,teacher)
 
     const accessToken = generateAccessToken(AccessObject);
     const refreshToken = generateRefreshToken(session);
+    const typeToken = btoa(teacher.type);
 
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
     res.cookie('refreshToken',refreshToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
+    res.cookie('typeToken',typeToken,{httpOnly:false,maxAge:getRefreshMaxAgeMili()});
 }
 
-module.exports={login, signup, logout, changePassword};
+module.exports={login, signup, logout, changePassword, getType};
