@@ -169,22 +169,20 @@ async function updateAccessToken(res, session)
     const accessToken = generateAccessToken(AccessObject);
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
     
-    await updateRefreshTypeToken(res, session, teacher);
+    await updateRefreshTypeToken(res, session);
     
     return AccessObject;
 }
 
-async function updateRefreshTypeToken(res,session,teacher)
+async function updateRefreshTypeToken(res,session)
 {
     //Checks if refreshToken is half the way to expiring 
     if ( getRefreshMaxAgeMili()/2 < Date.now()-session.startDate*1000 )
     {
         const updatedSession = await updateStartDate(session.id);
         const refreshToken = generateRefreshToken(updatedSession);
-        const typeToken = btoa(teacher.type);
 
         res.cookie('refreshToken',refreshToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
-        res.cookie('typeToken',typeToken,{httpOnly:false,maxAge:getRefreshMaxAgeMili()});
     }
 }
 
