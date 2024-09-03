@@ -169,12 +169,12 @@ async function updateAccessToken(res, session)
     const accessToken = generateAccessToken(AccessObject);
     res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
     
-    await updateRefreshTypeToken(res, session);
+    await updateRefreshToken(res, session);
     
     return AccessObject;
 }
 
-async function updateRefreshTypeToken(res,session)
+async function updateRefreshToken(res,session)
 {
     //Checks if refreshToken is half the way to expiring 
     if ( getRefreshMaxAgeMili()/2 < Date.now()-session.startDate*1000 )
