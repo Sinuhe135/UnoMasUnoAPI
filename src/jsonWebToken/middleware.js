@@ -167,7 +167,7 @@ async function updateAccessToken(res, session)
     };
     
     const accessToken = generateAccessToken(AccessObject);
-    res.cookie('accessToken',accessToken,{httpOnly:true,sameSite:'None',maxAge:getRefreshMaxAgeMili()});
+    res.cookie('accessToken',accessToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
     
     await updateRefreshToken(res, session);
     
@@ -182,7 +182,7 @@ async function updateRefreshToken(res,session)
         const updatedSession = await updateStartDate(session.id);
         const refreshToken = generateRefreshToken(updatedSession);
 
-        res.cookie('refreshToken',refreshToken,{httpOnly:true,sameSite:'None',maxAge:getRefreshMaxAgeMili()});
+        res.cookie('refreshToken',refreshToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
     }
 }
 
