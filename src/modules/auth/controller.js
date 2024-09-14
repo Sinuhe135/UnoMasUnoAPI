@@ -165,8 +165,9 @@ async function createJWTCookies(res, auth,teacher)
     const accessToken = generateAccessToken(AccessObject);
     const refreshToken = generateRefreshToken(session);
 
-    res.cookie('accessToken',accessToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
-    res.cookie('refreshToken',refreshToken,{httpOnly:true,maxAge:getRefreshMaxAgeMili()});
+    // change sameSite for Domain=.example.com in production
+    res.cookie('accessToken',accessToken,{httpOnly:true,sameSite:'None',maxAge:getRefreshMaxAgeMili()});
+    res.cookie('refreshToken',refreshToken,{httpOnly:true,sameSite:'None',maxAge:getRefreshMaxAgeMili()});
 }
 
 module.exports={login, signup, logout, changePassword, getCheck};
