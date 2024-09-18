@@ -56,8 +56,8 @@ async function logout(req, res)
 {
     try {
         const session = await deleteSession(res.locals.idSession);
-        res.cookie('accessToken','',{maxAge:1});
-        res.cookie('refreshToken','',{maxAge:1});
+        res.cookie('accessToken','',{maxAge:1,httpOnly:true,sameSite:'None',secure:true});
+        res.cookie('refreshToken','',{maxAge:1,httpOnly:true,sameSite:'None',secure:true});
         response.success(req,res,{id:session.idAuth},200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
