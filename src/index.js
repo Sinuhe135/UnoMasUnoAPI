@@ -12,7 +12,7 @@ app.use(cookieParser());
 
 // delete on production
 let numberIP = 0;
-let permitedIP = ['http://localhost:5173'];
+let permitedIP = ['http://localhost:5173', 'https://frontunomasuno-test.up.railway.app'];
 while(numberIP<30)
 {
     permitedIP.push('http://192.168.0.'+numberIP+':5173');
