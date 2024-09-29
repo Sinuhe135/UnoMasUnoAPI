@@ -1,31 +1,15 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
 const router = require('./routesIndex');
+const corsOptions = require('./corsOptions.js');
+const httpsServer = require('./httpsServer.js');
 const response = require('./utils/responses');
 const cookieParser = require('cookie-parser');
 const deleteExpiredSessions = require('./utils/expiredSessions');
-const httpsServer = require('./httpsServer.js');
 
 app.use(express.json());
 app.use(cookieParser());
-
-// delete on production
-let numberIP = 0;
-let permitedIP = ['http://localhost:5173', 'https://frontunomasuno-test.up.railway.app'];
-while(numberIP<30)
-{
-    permitedIP.push('http://192.168.0.'+numberIP+':5173');
-    numberIP++;
-}
-
-const corsOptions = {
-    origin: permitedIP,
-    credentials: true,
-};
-
-app.use(cors(corsOptions));
-
+app.use(corsOptions);
 app.use(router);
 
 app.all('*', (req,res,next)=>{
@@ -34,7 +18,12 @@ app.all('*', (req,res,next)=>{
 
 deleteExpiredSessions();
 
-httpsApp = httpsServer(app);
+let App = app;
+
+if(process.env.NODE_ENV === 'vps')
+{
+    App = httpsServer(app);
+}
 
 const port = process.env.PORT || 3000;
-httpsApp.listen(port, () => console.log(`Escuchando puerto ${port}...`));
+App.listen(port, () => console.log(`Escuchando puerto ${port}...`));
