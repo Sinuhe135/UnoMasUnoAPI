@@ -3,7 +3,7 @@ const router = express.Router();
 const controller = require('./controller.js');
 const {requireAdmin, requireTeacher} = require('../../jsonWebToken/middleware.js');
 
-router.get('/all',requireTeacher,async (req,res) =>{
+router.get('/all/:page',requireTeacher,async (req,res) =>{
     await controller.getAll(req,res);
 });
 

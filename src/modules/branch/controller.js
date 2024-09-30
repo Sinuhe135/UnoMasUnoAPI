@@ -1,13 +1,30 @@
 const validateBranch = require('./schemas/branch.js');
 const validateParamId = require('./schemas/paramId.js');
+const validateParamPage = require('./schemas/paramPage.js');
 const response = require('../../utils/responses.js');
-const {getAllBranches,getBranch, editBranch, deleteBranch, createBranch} = require('../../databaseUtils/branch.js');
+const {getAllBranches,getNumberOfPages,getBranch, editBranch, deleteBranch, createBranch} = require('../../databaseUtils/branch.js');
 
 async function getAll(req,res)
 {
     try {
-        const branches = await getAllBranches();
-        response.success(req,res,branches,200);
+        const validation = validateParamPage(req.params);
+        if(validation.error)
+        {
+            response.error(req,res,validation.error.details[0].message,400);
+            return;
+        }
+        const params = validation.value;
+
+        let [numberOfPages,branches] = await Promise.all([getNumberOfPages(),getAllBranches(params.page)]);
+
+        if(params.page > numberOfPages)
+        {
+            response.error(req,res,'Pagina fuera de los limites',404);
+            return;
+        }
+
+        const resObject = {numberOfPages:numberOfPages,page: params.page,branches:branches};
+        response.success(req,res,resObject,200);
     } catch (error) {
         console.log(`Hubo un error con ${req.method} ${req.originalUrl}`);
         console.log(error);

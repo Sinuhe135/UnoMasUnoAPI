@@ -3,6 +3,7 @@ const validateLogIn = require('./schemas/login.js');
 const validateChangePassword = require('./schemas/changePassword.js');
 const validateParamId = require('./schemas/paramId.js');
 const response = require('../../utils/responses.js');
+const cookieProperties = require('./../../utils/cookieProperties.js')
 const bcrypt = require('bcrypt');
 const {generateAccessToken,generateRefreshToken, getRefreshMaxAgeMili} = require('../../jsonWebToken/utils.js')
 const {getAuthByUsername, editPassword} = require('../../databaseUtils/userUtils/auth.js');
@@ -166,8 +167,11 @@ async function createJWTCookies(res, auth,teacher)
     const refreshToken = generateRefreshToken(session);
 
     // change sameSite for Domain=.example.com in production
-    res.cookie('accessToken',accessToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
-    res.cookie('refreshToken',refreshToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
+
+    const properties = {...{maxAge:getRefreshMaxAgeMili()},...cookieProperties}
+
+    res.cookie('accessToken',accessToken,properties);
+    res.cookie('refreshToken',refreshToken,properties);
 }
 
 module.exports={login, signup, logout, changePassword, getCheck};

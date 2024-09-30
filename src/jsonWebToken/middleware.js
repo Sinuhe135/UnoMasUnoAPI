@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const {getKey, getRefreshMaxAgeMili,generateAccessToken,generateRefreshToken} = require('./utils.js');
 const response = require('./../utils/responses.js');
+const cookieProperties = require('../utils/cookieProperties.js')
 const {getSession, updateStartDate} = require('./../databaseUtils/userUtils/session.js');
 const {getAuth} = require('./../databaseUtils/userUtils/auth.js');
 const {getTeacher} = require('./../databaseUtils/userUtils/teacher.js');
@@ -167,7 +168,9 @@ async function updateAccessToken(res, session)
     };
     
     const accessToken = generateAccessToken(AccessObject);
-    res.cookie('accessToken',accessToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
+    const properties = {...{maxAge:getRefreshMaxAgeMili()},...{cookieProperties}};
+
+    res.cookie('accessToken',accessToken,properties);
     
     await updateRefreshToken(res, session);
     
@@ -181,8 +184,9 @@ async function updateRefreshToken(res,session)
     {
         const updatedSession = await updateStartDate(session.id);
         const refreshToken = generateRefreshToken(updatedSession);
+        const properties = {...{maxAge:getRefreshMaxAgeMili()},...{cookieProperties}};
 
-        res.cookie('refreshToken',refreshToken,{httpOnly:true,sameSite:'None',secure:true,maxAge:getRefreshMaxAgeMili()});
+        res.cookie('refreshToken',refreshToken,properties);
     }
 }
 

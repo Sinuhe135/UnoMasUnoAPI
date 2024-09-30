@@ -1,10 +1,28 @@
 const pool = require('./databaseCon.js');
 
-async function getAllBranches()
+const numberOfResultRows = 5;
+
+async function getAllBranches(pageNumber)
 {
+    const rowsToSkip = (pageNumber-1)*numberOfResultRows;
+    const pagination = 'order by id desc LIMIT '+numberOfResultRows.toString()+' offset '+rowsToSkip.toString();
+    
     const dataSelection = 'id,name,country,state,city,postalCode,address';
-    const [rows] = await pool.query('select ' + dataSelection + ' from BRANCH where active = 1');
+    const [rows] = await pool.query('select ' + dataSelection + ' from BRANCH where active = 1 '+pagination);
     return rows;
+}
+
+async function getNumberOfPages()
+{
+    const [rows] = await pool.query('select COUNT(id) as row_num from BRANCH where active = 1');
+    let numberOfPages = rows[0].row_num / numberOfResultRows;
+
+    if(numberOfPages !== Math.trunc(numberOfPages))
+    {
+        numberOfPages = Math.trunc(numberOfPages) +1;
+    }
+
+    return numberOfPages;    
 }
 
 async function getBranch(id)
@@ -32,4 +50,4 @@ async function createBranch(name,country,state,city,postalCode,addresss)
     return await getBranch(result.insertId);
 }
 
-module.exports={getAllBranches,getBranch,editBranch,createBranch, deleteBranch};
+module.exports={getAllBranches,getNumberOfPages,getBranch,editBranch,createBranch, deleteBranch};
