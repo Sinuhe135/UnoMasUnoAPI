@@ -1,14 +1,14 @@
 const pool = require('./databaseCon.js');
 
-const numberOfResultRows = 5;
+const numberOfResultRows = 20;
 
 async function getAllBranches(pageNumber)
 {
     const rowsToSkip = (pageNumber-1)*numberOfResultRows;
-    const pagination = 'order by id desc LIMIT '+numberOfResultRows.toString()+' offset '+rowsToSkip.toString();
+    const pagination = 'order by id desc LIMIT '+numberOfResultRows.toString()+' offset ?'; //rowsToSkip
     
     const dataSelection = 'id,name,country,state,city,postalCode,address';
-    const [rows] = await pool.query('select ' + dataSelection + ' from BRANCH where active = 1 '+pagination);
+    const [rows] = await pool.query('select ' + dataSelection + ' from BRANCH where active = 1 '+pagination, [rowsToSkip]);
     return rows;
 }
 

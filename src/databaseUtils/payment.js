@@ -1,25 +1,58 @@
 const pool = require('./databaseCon.js');
 
-async function getAllPaymentsAdmin()
+const numberOfResultRows = 20;
+
+async function getAllPaymentsAdmin(pageNumber)
 {
+    const rowsToSkip = (pageNumber-1)*numberOfResultRows;
+    const pagination = 'order by PAYMENT.id desc LIMIT '+numberOfResultRows.toString()+' offset ?'; //rowsToSkip
+
     const dataSelection = "PAYMENT.id,DATE_FORMAT(PAYMENT.date, '%Y-%m-%d') as date,PAYMENT.concept,PAYMENT.amount,PAYMENT.commissionAmount,PAYMENT.method";
     const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,COALESCE(CONCAT(' ',STUDENT.matLastname), '')) as student";
     const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,COALESCE(CONCAT(' ',USER.matLastname), '')) as teacher";
 
-    const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id order by PAYMENT.id desc');
+    const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id '+pagination,[rowsToSkip]);
     return rows;
 }
 
-async function getAllPayments(id)
+async function getAllPayments(id, pageNumber)
 {
+    const rowsToSkip = (pageNumber-1)*numberOfResultRows;
+    const pagination = 'order by PAYMENT.id desc LIMIT '+numberOfResultRows.toString()+' offset ?';
+
     const dataSelection = "PAYMENT.id,DATE_FORMAT(PAYMENT.date, '%Y-%m-%d')as date,PAYMENT.concept,PAYMENT.amount,PAYMENT.commissionAmount,PAYMENT.method";
     const studentDataSelection = ", CONCAT(STUDENT.name,' ',STUDENT.patLastName,COALESCE(CONCAT(' ',STUDENT.matLastname), '')) as student";
     const userDataSelection = ", CONCAT(USER.name,' ',USER.patLastName,COALESCE(CONCAT(' ',USER.matLastname), '')) as teacher";
 
-    const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id where PAYMENT.idTeacher = ? order by PAYMENT.id desc',[id]);
+    const [rows] = await pool.query('select ' + dataSelection  +studentDataSelection+ userDataSelection+' from PAYMENT inner join STUDENT on STUDENT.id = PAYMENT.idStudent inner join TEACHER on TEACHER.id = PAYMENT.idTeacher inner join USER on USER.id = TEACHER.id where PAYMENT.idTeacher = ? '+pagination,[id,rowsToSkip]);
     return rows;
 }
 
+async function getNumberOfPagesAdmin()
+{
+    const [rows] = await pool.query('select COUNT(id) as row_num from PAYMENT');
+    let numberOfPages = rows[0].row_num / numberOfResultRows;
+
+    if(numberOfPages !== Math.trunc(numberOfPages))
+    {
+        numberOfPages = Math.trunc(numberOfPages) +1;
+    }
+
+    return numberOfPages;    
+}
+
+async function getNumberOfPages(id)
+{
+    const [rows] = await pool.query('select COUNT(id) as row_num from PAYMENT where PAYMENT.idTeacher = ?',[id]);
+    let numberOfPages = rows[0].row_num / numberOfResultRows;
+
+    if(numberOfPages !== Math.trunc(numberOfPages))
+    {
+        numberOfPages = Math.trunc(numberOfPages) +1;
+    }
+
+    return numberOfPages;    
+}
 
 async function checkTeacherPayment(id)
 {
@@ -72,4 +105,4 @@ async function createPayment(concept,amount,commissionAmount,method,idStudent,id
     return await getPayment(result.insertId);
 }
 
-module.exports={getAllPaymentsAdmin,getAllPayments,getPaymentIdTeacher,checkTeacherPayment,getPayment,editPayment,createPayment, deletePayment};
+module.exports={getAllPaymentsAdmin,getAllPayments,getNumberOfPages,getNumberOfPagesAdmin,getPaymentIdTeacher,checkTeacherPayment,getPayment,editPayment,createPayment, deletePayment};

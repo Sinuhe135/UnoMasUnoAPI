@@ -17,7 +17,12 @@ async function getAll(req,res)
 
         let [numberOfPages,branches] = await Promise.all([getNumberOfPages(),getAllBranches(params.page)]);
 
-        if(params.page > numberOfPages)
+        if(numberOfPages === 0)
+        {
+            response.error(req,res,'Sin registros',404);
+            return;
+        }
+        else if(params.page > numberOfPages)
         {
             response.error(req,res,'Pagina fuera de los limites',404);
             return;

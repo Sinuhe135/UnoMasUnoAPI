@@ -1,10 +1,28 @@
 const pool = require('../databaseCon.js');
 
-async function getAllUsers()
+const numberOfResultRows = 2;
+
+async function getAllUsers(pageNumber)
 {
+    const rowsToSkip = (pageNumber-1)*numberOfResultRows;
+    const pagination = 'order by USER.id desc LIMIT '+numberOfResultRows.toString()+' offset ?'; //rowsToSkip
+
     const dataSelection = 'USER.id, USER.name, USER.patLastName, USER.matLastName, USER.phone, AUTH.username, TEACHER.type, TEACHER.commission';
-    const [rows] = await pool.query('select ' + dataSelection + ' from USER inner join AUTH on USER.id = AUTH.id inner join TEACHER on USER.id = TEACHER.id where USER.active = 1');
+    const [rows] = await pool.query('select ' + dataSelection + ' from USER inner join AUTH on USER.id = AUTH.id inner join TEACHER on USER.id = TEACHER.id where USER.active = 1 '+pagination,[rowsToSkip]);
     return rows;
+}
+
+async function getNumberOfPages()
+{
+    const [rows] = await pool.query('select COUNT(id) as row_num from USER where active = 1');
+    let numberOfPages = rows[0].row_num / numberOfResultRows;
+
+    if(numberOfPages !== Math.trunc(numberOfPages))
+    {
+        numberOfPages = Math.trunc(numberOfPages) +1;
+    }
+
+    return numberOfPages;    
 }
 
 async function getUser(id)
@@ -79,4 +97,4 @@ async function createUser(name,patLastName,matLastName,phone,username,password,t
     }   
 }
 
-module.exports={getAllUsers,getUser,editUser,createUser, deleteUser};
+module.exports={getAllUsers,getNumberOfPages,getUser,editUser,createUser, deleteUser};
