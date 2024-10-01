@@ -1,6 +1,6 @@
 const validateUser = require('./schemas/user.js');
-const validateParamId = require('./schemas/paramId.js');
-const validateParamPage = require('./schemas/paramPage.js');
+const validateParamId = require('../../utils/schemas/paramId.js');
+const validateParamPage = require('../../utils/schemas/paramPage.js');
 const response = require('../../utils/responses.js');
 const {getAllUsers,getNumberOfPages,getUser, editUser, deleteUser} = require('../../databaseUtils/userUtils/user.js');
 

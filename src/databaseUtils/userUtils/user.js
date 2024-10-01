@@ -1,6 +1,6 @@
 const pool = require('../databaseCon.js');
 
-const numberOfResultRows = 2;
+const numberOfResultRows = 20;
 
 async function getAllUsers(pageNumber)
 {

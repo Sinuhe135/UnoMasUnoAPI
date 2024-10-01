@@ -1,6 +1,6 @@
 const validateStudent = require('./schemas/student.js');
-const validateParamId = require('./schemas/paramId.js');
-const validateParamPage = require('./schemas/paramPage.js');
+const validateParamId = require('../../utils/schemas/paramId.js');
+const validateParamPage = require('../../utils/schemas/paramPage.js');
 const response = require('../../utils/responses.js');
 const {getAllGeneralStudents,getAllIndieStudents,getNumberOfGeneralPages,getNumberOfIndiePages,checkTeacherStudent,getStudentIdTeacher, editStudent, deleteStudent, createStudent} = require('../../databaseUtils/student.js');
 const {getBranch} = require('../../databaseUtils/branch.js');

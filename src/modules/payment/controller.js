@@ -1,6 +1,6 @@
 const validatePayment = require('./schemas/payment.js');
-const validateParamId = require('./schemas/paramId.js');
-const validateParamPage = require('./schemas/paramPage.js');
+const validateParamId = require('../../utils/schemas/paramId.js');
+const validateParamPage = require('../../utils/schemas/paramPage.js');
 const response = require('../../utils/responses.js');
 const {getAllPaymentsAdmin,getAllPayments,getNumberOfPages,getNumberOfPagesAdmin,checkTeacherPayment,getPayment,getPaymentIdTeacher,editPayment,createPayment, deletePayment} = require('../../databaseUtils/payment.js');
 const {checkTeacherStudent} = require('../../databaseUtils/student.js');
@@ -25,7 +25,7 @@ async function getAll(req,res)
         }
         else if(res.locals.type === 'independiente' || res.locals.type === 'general')
         {
-            [numberOfPages,payments] = await Promise.all([getNumberOfPages(id),getAllPayments(res.locals.idAuth,params.page)]);
+            [numberOfPages,payments] = await Promise.all([getNumberOfPages(res.locals.idAuth),getAllPayments(res.locals.idAuth,params.page)]);
         }
 
         if(numberOfPages === 0)
