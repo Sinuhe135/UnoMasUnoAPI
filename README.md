@@ -1,19 +1,19 @@
 # UnoMasUnoAPI 
-RESTful API para aplicación web para centro educativo Uno mas uno
+RESTful API para aplicación web para Centro educativo Uno+1
 
 ## Endpoints
 
 ### Módulo autentificación
 
 #### GET
-- https://velazduran.com:3000/api/auth/check Verificar sesion iniciada y obtener tipo de usuario
+- **/api/auth/check** Verificar sesion iniciada y obtener tipo de usuario
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
 #### POST
-- https://velazduran.com:3000/api/auth/signup Registrar usuario.
+- **/api/auth/signup** Registrar usuario.
 
-  Requiere administrador
+  - Requiere administrador
 
 ```
 {
@@ -28,9 +28,9 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 }
 ```
 
-- https://velazduran.com:3000/api/auth/login Iniciar sesion
+- **/api/auth/login** Iniciar sesion
 
-  Requiere no estar logueado
+  - Requiere no estar logueado
 ```
 {
     "username": string min(3) max(20) required,
@@ -39,9 +39,9 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### PUT
-- https://velazduran.com:3000/api/auth/changePassword/[id] Cambiar la contraseña del usuario indicado en el parámetro
+- **/api/auth/changePassword/[id]** Cambiar la contraseña del usuario indicado en el parámetro
 
-  Requiere administrador
+  - Requiere administrador
 ```
 {
     "password":  string min(3) required,
@@ -50,31 +50,31 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### DELETE
-- https://velazduran.com:3000/api/auth/logout Cerrar la sesión del usuario actual
+- **/api/auth/logout** Cerrar la sesión del usuario actual
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
 ### Módulo usuarios
 
 #### GET
-- https://velazduran.com:3000/api/users/all Obtener los datos de todos los usuarios
+- **/api/users/all/[page]** Obtener los datos de todos los usuarios. Página y cantidad de páginas. Cada página contiene 20 registros.
 
-  Requiere administrador
+  - Requiere administrador
 
 
-- https://velazduran.com:3000/api/users/current Obtener los datos del usuario actual
+- **/api/users/current** Obtener los datos del usuario actual
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
-- https://velazduran.com:3000/api/users/search/[id] Obtener los datos del usuario indicado
+- **/api/users/search/[id]** Obtener los datos del usuario indicado
 
-  Requiere administrador
+  - Requiere administrador
 
 
 #### PUT
-- https://velazduran.com:3000/api/users/[id] Actualizar los datos del usuario indicado
+- **/api/users/[id]** Actualizar los datos del usuario indicado
 
-  Requiere administrador
+  - Requiere administrador
 ```
 {
     "name": string min(3) max(30) required,
@@ -86,25 +86,25 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### DELETE
-- https://velazduran.com:3000/api/users/[id] Elimina al usuario indicado
+- **/api/users/[id]** Elimina al usuario indicado
 
-  Requiere administrador
+  - Requiere administrador
 
 ### Módulo sucursaes
 
 #### GET
-- https://velazduran.com:3000/api/branches/all Obtener los datos de todas las sucursales
+- **/api/branches/all/[page]** Obtener los datos de todas las sucursales. Página y cantidad de páginas. Cada página contiene 20 registros.
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
-- https://velazduran.com:3000/api/branches/search/[id] Obtener los datos de la sucursal indicada
+- **/api/branches/search/[id]** Obtener los datos de la sucursal indicada
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
 #### POST
-- https://velazduran.com:3000/api/branches Crear una sucursal
+- **/api/branches** Crear una sucursal
 
-  Requiere administrador
+  - Requiere administrador
 ```
 {
     "name": string min(3) max(40) required,
@@ -117,9 +117,9 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### PUT
-- https://velazduran.com:3000/api/branches/[id] Actualizar los datos de la sucursal indicada
+- **/api/branches/[id]** Actualizar los datos de la sucursal indicada
 
-  Requiere administrador
+  - Requiere administrador
 ```
 {
     "name": string min(3) max(40) required,
@@ -132,25 +132,25 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### DELETE
-- https://velazduran.com:3000/api/branches/[id] Elimina la sucursal indicada
+- **/api/branches/[id]** Elimina la sucursal indicada
 
-  Requiere administrador
+  - Requiere administrador
 
 ### Módulo estudiantes
 
 #### GET
-- https://velazduran.com:3000/api/students/all Obtener los datos de todos los estudiantes
+- **/api/students/all/[page]** Obtener los datos de todos los estudiantes. Página y cantidad de páginas. Cada página contiene 20 registros.
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
-- https://velazduran.com:3000/api/students/search/[id] Obtener los datos del estudiante indicado
+- **/api/students/search/[id]** Obtener los datos del estudiante indicado
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
 #### POST
-- https://velazduran.com:3000/api/students Registrar un estudiante
+- **/api/students** Registrar un estudiante
 
-  Requiere administrador o independiente
+  - Requiere administrador o independiente
 ```
 {
     "name": string min(3) max(30) required,
@@ -173,9 +173,9 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### PUT
-- https://velazduran.com:3000/api/students/[id] Actualizar los datos del estudiante indicado
+- **/api/students/[id]** Actualizar los datos del estudiante indicado
 
-  Requiere administrador o independiente
+  - Requiere administrador o independiente
 ```
 {
     "name": string min(3) max(30) required,
@@ -198,25 +198,25 @@ RESTful API para aplicación web para centro educativo Uno mas uno
 ```
 
 #### DELETE
-- https://velazduran.com:3000/api/branches/[id] Elimina al estudiante indicado
+- **/api/branches/[id]** Elimina al estudiante indicado
 
-  Requiere administrador o independiente
+  - Requiere administrador o independiente
 
 ### Módulo pagos
 
 #### GET
-- https://velazduran.com:3000/api/payments/all Obtener los datos de todos los pagos
+- **/api/payments/all/[page]** Obtener los datos de todos los pagos. Página y cantidad de páginas. Cada página contiene 20 registros.
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
-- https://velazduran.com:3000/api/payments/search/[id] Obtener los datos del pago indicado
+- **/api/payments/search/[id]** Obtener los datos del pago indicado
 
-  Requiere estar logueado
+  - Requiere estar logueado
 
 #### POST
-- https://velazduran.com:3000/api/payments Registrar un pago
+- **/api/payments** Registrar un pago
 
-  Requiere estar logueado
+  - Requiere estar logueado
 ```
 {
     "concept": string min(3) max(20) required,
