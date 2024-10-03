@@ -4,7 +4,19 @@ let permitedIP = [];
 
 if(process.env.NODE_ENV === 'production')
 {
-    permitedIP = ['https://urlfinal.com'];
+    if(!process.env.DOMAIN)
+    {
+        throw ('DOMAIN has not been set up');
+    }
+
+    if(process.env.SUBDOMAIN)
+    {
+        permitedIP = ['https://'+process.env.SUBDOMAIN+'.'+process.env.DOMAIN];
+    }
+    else
+    {
+        permitedIP = ['https://'+process.env.DOMAIN];
+    }
 }
 else if (process.env.NODE_ENV)
 {
