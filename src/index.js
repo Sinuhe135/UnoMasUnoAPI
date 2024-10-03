@@ -18,12 +18,5 @@ app.all('*', (req,res,next)=>{
 
 deleteExpiredSessions();
 
-let App = app;
-
-if(process.env.NODE_ENV === 'vps')
-{
-    App = httpsServer(app);
-}
-
 const port = process.env.PORT || 3000;
-App.listen(port, () => console.log(`Escuchando puerto ${port}...`));
+app.listen(port, () => console.log(`Escuchando puerto ${port}...`));
