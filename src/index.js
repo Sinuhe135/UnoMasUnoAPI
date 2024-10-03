@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const router = require('./routesIndex');
 const corsOptions = require('./corsOptions.js');
-const httpsServer = require('./httpsServer.js');
 const response = require('./utils/responses');
 const cookieParser = require('cookie-parser');
 const deleteExpiredSessions = require('./utils/expiredSessions');
